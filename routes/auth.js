@@ -18,12 +18,13 @@ function userLogged(req, res, next) {
   // const bcrypt = require('bcrypt');
   // const saltRounds = 10;
 
-  const scope_ = ['https://www.googleapis.com/auth/drive.metadata.readonly','https://www.googleapis.com/auth/calendar','profile','email'];
+  const scope_ = ['https://www.googleapis.com/auth/calendar','profile','email'];
 
   /* GET home page. */
 
   router.get('/googlelogin', passport.authenticate('google', {
-    scope: scope_
+    scope: scope_,
+    accessType: 'offline',prompt: 'consent'
   }));
 
   router.get('/google/callback',
@@ -42,7 +43,7 @@ function userLogged(req, res, next) {
 
 
   router.get('/cal',function(req,res){
-    fetch(`https://www.googleapis.com/drive/v2/files?access_token=${req.user.token.access_token}`)
+    fetch(`https://www.googleapis.com/drive/v2/files?access_token=${req.user.mastertoken.access_token}`)
       .then(function (response){
         return response.json()
       })

@@ -9,6 +9,8 @@
   var session = require('express-session')
   var FileStore = require('session-file-store')(session);
   var db = require('./lib/mysql');
+  var googleCredentials = require('./config/google.json');
+
 
   // 추가 import
   var passport = require('./lib/passport');
@@ -78,22 +80,27 @@
   })
 
   app.get('/',function(req,res){
-    let data = {}
-    // pushing req.user.profile
-    if (req.user){
-      data.profile = req.user.profile
+    async function run(){
+      let data = {}
+      let AT
+      // get master_cal AT by using RT
+      await template.reloadAT(req,res,googleCredentials)
+      // pushing req.user.profile
+      if (req.user){
+        data.profile = req.user.profile
+      }
+      // pushing mastercal_list and res.send
+      fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList?access_token=${req.user.mastertoken.access_token}`)
+      .then(function (response){
+        return response.json()
+      })
+      .then(function(data_){
+        data.mastercal_list = data_
+        res.send(data)
+        console.log('data obejct : ' ,data)
+      })
     }
-    // pushing mastercal_list and res.send
-    fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList?access_token=ya29.a0ARrdaM_w586j1tBs8dFkBR6FtxGek6MOFWYCz-J7pJO-z9LMEGnpXLDIFqBDfiC9NR3dzD0H9-uZv8Ig-BR_3zl7HbUdLPbHdxtTUKHPjz0CFotXfCPkCwISCHrN36gycgia6wpV_knRbTT_gnH4vLx5oBOe`)
-    .then(function (response){
-      return response.json()
-    })
-    .then(function(data_){
-      data.mastercal_list = data_
-      res.send(data)
-      console.log('data obejct : ' ,data)
-    })
-
+    run();
   })
 
   app.get('/calendar/0', function (req, res) {
