@@ -19,7 +19,9 @@
 
   //Router imports
   var authRouter = require('./routes/auth');
-  var mainRouter = require('./routes/main');
+  var calRouter = require('./routes/cal');
+
+
 
 
 
@@ -35,6 +37,9 @@
 
 
   // app.use +
+    // setting session
+
+
   app.use(session({
     store: new FileStore(),
     secret: 'keyboard cat',
@@ -44,73 +49,49 @@
   app.use(passport.initialize());
   app.use(passport.session());
 
-
   // main code
-  app.get('/test',function(req,res){
-    //
-    let data = {}
-    // login checking and ui change
-    let logged
-    if (!data.profile){
-      logged = `<a href="/auth/googlelogin">login</a>`
-    }
-    else {
-      logged = `<a href="/auth/googlelogout">logout</a>`
-    }
 
-    // pushing req.user.profile
-    if (req.user){
-      data.profile = req.user.profile
-    }
-    // pushing mastercal_list and res.send
-    fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList?access_token=ya29.a0ARrdaM_w586j1tBs8dFkBR6FtxGek6MOFWYCz-J7pJO-z9LMEGnpXLDIFqBDfiC9NR3dzD0H9-uZv8Ig-BR_3zl7HbUdLPbHdxtTUKHPjz0CFotXfCPkCwISCHrN36gycgia6wpV_knRbTT_gnH4vLx5oBOe`)
-    .then(function (response){
-      return response.json()
-    })
-    .then(function(data_){
-      data.mastercal_list = data_
-      var html = template.main(logged,data.mastercal_list.items[0].summary)
-      res.send(html);
-
-    })
-    //
-    
-
-    
-  })
-
-  app.get('/',function(req,res){
-    async function run(){
-      let data = {}
-      let AT
-      // get master_cal AT by using RT
-      await template.reloadAT(req,res,googleCredentials)
-      // pushing req.user.profile
-      if (req.user){
-        data.profile = req.user.profile
+    // refresh mastertoken
+    app.use(function(req,res,next){  
+      console.log('1111111')
+      async function run(){
+        // set req.user if not exists
+        template.createReqUser(req,res)
+        // refresh mastertoken if not exists
+        if (!req.user.mastertoken){
+          await template.refreshMasterAT(req,res,googleCredentials,next)
+        }
+        // check (return true) if masterAT expired -> reloadmastertoken
+        console.log('???',template.checkMasterATexpired(req,res))
+        if (template.checkMasterATexpired(req,res)){
+          await template.refreshMasterAT(req,res,googleCredentials,next)
+        }
       }
-      // pushing mastercal_list and res.send
-      fetch(`https://www.googleapis.com/calendar/v3/users/me/calendarList?access_token=${req.user.mastertoken.access_token}`)
-      .then(function (response){
-        return response.json()
-      })
-      .then(function(data_){
-        data.mastercal_list = data_
-        res.send(data)
-        console.log('data obejct : ' ,data)
-      })
-    }
-    run();
-  })
+      run()
+    })
 
-  app.get('/calendar/0', function (req, res) {
-    console.log('/calendar/0')
-    res.json({'user1':'apple'})
-    // res.sendFile(path.join(__dirname, '/react-project/build/index.html'));
-  });
+    app.get('/',function(req,res){
+      async function run2(){
+        console.log('222222')
+        let data = {};
+        // pushing req.user.profile if logined
+        if (req.user.profile){
+          data.profile = req.user.profile
+        }
+        // pushing mastercal_list
+        await template.getMasterCalList(req,res,data)
+        res.send(data)
+      }
+      run2();
+    })
+
+
+
 
   //Routers
   app.use('/auth',authRouter);
+  app.use('/cal',calRouter);
+
   // app.use('/main', mainRouter);
   // app.use('/my', myRouter);
 
@@ -134,6 +115,8 @@
     res.render('error');
   });
 
-  app.listen(3005,function(){})
+  app.listen(3005,function(req,res){
+    console.log('SERVER Turned on!!')
+  })
 
 module.exports = app;

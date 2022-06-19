@@ -30,13 +30,13 @@ function userLogged(req, res, next) {
   router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/auth/googlelogin'}),
     function(req, res) {
-      res.redirect('/test')
+      res.redirect('/')
   });
 
   router.get('/googlelogout',function(req,res){
     req.logout(function(){
       req.session.save(function(err,result){
-        res.redirect('/test');
+        res.redirect('/');
       });
     });
   })
