@@ -1,22 +1,7 @@
-function delay(ms){
-    return new Promise(resolve=>setTimeout(resolve,ms))
-}
-async function getApple(){
-    await delay(3000)
-    return 'apple';
-}
-async function getBanana(){
-    await delay(3000)
-    return 'Banana';
-}
+let v1 = {a:{k:1},b:2}
 
-async function pickAll(){
-    const apple = getApple()
-    const banana = getBanana()
-    const apple_ = await apple
-    const banana_ = await banana
-    console.log(apple,banana)
-}
-pickAll()
+let v2 = v1.a
 
+v2.k = 2
 
+console.log(v1,v2)

@@ -10,6 +10,7 @@
   var FileStore = require('session-file-store')(session);
   var db = require('./lib/mysql');
   var googleCredentials = require('./config/google.json');
+  // var bodyParser = require('body-parser')
 
 
   // 추가 import
@@ -51,20 +52,22 @@
 
   // main code
 
-    // refresh mastertoken
+    // token handling
     app.use(function(req,res,next){  
-      console.log('1111111')
       async function run(){
+        console.log('again!!')
         // set req.user if not exists
         template.createReqUser(req,res)
-        // refresh mastertoken if not exists
+        // refresh mastertoken if not exists, if exists, next()
         if (!req.user.mastertoken){
           await template.refreshMasterAT(req,res,googleCredentials,next)
         }
+        else {next()}
+
         // check (return true) if masterAT expired -> reloadmastertoken
-        console.log('???',template.checkMasterATexpired(req,res))
         if (template.checkMasterATexpired(req,res)){
           await template.refreshMasterAT(req,res,googleCredentials,next)
+
         }
       }
       run()
@@ -72,17 +75,22 @@
 
     app.get('/',function(req,res){
       async function run2(){
-        console.log('222222')
-        let data = {};
+        var data = {};
+        var masterCal_list = {};
         // pushing req.user.profile if logined
         if (req.user.profile){
           data.profile = req.user.profile
         }
-        // pushing mastercal_list
-        await template.getMasterCalList(req,res,data)
-        res.send(data)
+        // get mastercal_list from google api
+        masterCal_list = await template.getMasterCalData(req,res)
+        // DB , server Data synchronize
+          // register server Data on DB
+          await template.makeMasterCalDB(masterCal_list)
+          // get MasterCalDB Data and save on 'data' object and res.send(data)
+          template.getMasterCalDB(req,res,data)
       }
       run2();
+      
     })
 
 
