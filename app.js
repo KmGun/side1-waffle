@@ -55,26 +55,26 @@
     // token handling
     app.use(function(req,res,next){  
       async function run(){
-        console.log('again!!')
         // set req.user if not exists
         template.createReqUser(req,res)
         // refresh mastertoken if not exists, if exists, next()
         if (!req.user.mastertoken){
           await template.refreshMasterAT(req,res,googleCredentials,next)
         }
-        else {next()}
-
-        // check (return true) if masterAT expired -> reloadmastertoken
-        if (template.checkMasterATexpired(req,res)){
-          await template.refreshMasterAT(req,res,googleCredentials,next)
-
+        else {
+          // check (return true) if masterAT expired -> reloadmastertoken
+          if (template.checkMasterATexpired(req,res)){
+            await template.refreshMasterAT(req,res,googleCredentials,next)
+          }
+          // or not -> next()
+          else{next()}
         }
       }
       run()
     })
 
     app.get('/',function(req,res){
-      async function run2(){
+      async function run(){
         var data = {};
         var masterCal_list = {};
         // pushing req.user.profile if logined
@@ -85,11 +85,11 @@
         masterCal_list = await template.getMasterCalData(req,res)
         // DB , server Data synchronize
           // register server Data on DB
-          await template.makeMasterCalDB(masterCal_list)
+          template.makeMasterCalDB(masterCal_list)
           // get MasterCalDB Data and save on 'data' object and res.send(data)
           template.getMasterCalDB(req,res,data)
       }
-      run2();
+      run();
       
     })
 

@@ -9,8 +9,10 @@ var bodyParser = require('body-parser')
 router.post('/create',function(req,res){
     async function run(){
         await template.createMasterCal(req,res)
+        template.addMasterCalHashtagsOnDB(req,res)
         res.redirect('/')
     }   
+    run();
 })
 
 
@@ -65,9 +67,13 @@ router.get('/:Id/unsubscribe',function(req,res){
 })
 
 router.post('/:Id/event/create',function(req,res){
-    async function run(){
-        template.subscribeCal(req,res)        
-    }
+    db.query(`SELECT * FROM masterCal WHERE id=?`,[req.params.Id],function(err,cal){
+        async function run(){
+            const calId = cal[0].calId;
+            await template.addEventOnCal(req,res,calId);
+            res.redirect(`/cal/${req.params.Id}`)
+        }
+    })
 })
 
 
