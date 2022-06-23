@@ -2,21 +2,19 @@
   var createError = require('http-errors');
   var path = require('path');
   var cookieParser = require('cookie-parser');
+  var bodyParser = require('body-parser')
   var logger = require('morgan');
 
   var express = require('express');
   var app = express();
   var session = require('express-session')
   var FileStore = require('session-file-store')(session);
-  var db = require('./lib/mysql');
   var googleCredentials = require('./config/google.json');
-  // var bodyParser = require('body-parser')
-
 
   // 추가 import
   var passport = require('./lib/passport');
-  const fetch = require("node-fetch");
   var template = require('./lib/template');
+  const cors = require("cors");
 
   //Router imports
   var authRouter = require('./routes/auth');
@@ -26,7 +24,7 @@
 
 
 
-  //app.use
+  //middlewares
 
   app.set('views', path.join(__dirname, 'views'));
   app.set('view engine', 'jade')
@@ -35,10 +33,10 @@
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser());
+  app.use(cors());
 
 
-  // app.use +
-    // setting session
+  // passport, session
 
 
   app.use(session({
@@ -93,19 +91,9 @@
       
     })
 
-
-
-
   //Routers
   app.use('/auth',authRouter);
   app.use('/cal',calRouter);
-
-  // app.use('/main', mainRouter);
-  // app.use('/my', myRouter);
-
-
-
-
 
   // catch 404 and forward to error handler
   app.use(function(req, res, next) {
