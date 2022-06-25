@@ -1,0 +1,17 @@
+mysql 초기 설정 필요
+1. lib/mysql 파일에 암호설정하기
+2. sql문 작성
+    CREATE TABLE masterCal(
+    id INT NOT NULL AUTO_INCREMENT,
+    calId VARCHAR(100) NOT NULL,
+    calName VARCHAR(100) NOT NULL,
+    subscribers TEXT NULL,
+    hashtags TEXT NULL,
+    PRIMARY KEY(id)
+    );
+    CREATE TABLE users(
+    id INT NOT NULL AUTO_INCREMENT,
+    userId VARCHAR(100) NOT NULL,
+    subscribes TEXT NULL,
+    PRIMARY KEY(id)
+    );
