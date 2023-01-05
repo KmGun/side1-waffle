@@ -15,3 +15,5 @@ mysql 초기 설정 필요
     subscribes TEXT NULL,
     PRIMARY KEY(id)
     );
+    
+   테스트용~~
